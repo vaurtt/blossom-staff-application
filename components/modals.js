@@ -2,7 +2,6 @@ const { EmbedBuilder } = require('discord.js');
 const config = require('../config.json');
 const { db, saveDB } = require('../db.js');
 
-// 🔒 Funzione per controllare se l'utente è Admin o Owner
 async function hasStaffPermission(interaction) {
     try {
         const member = await interaction.guild.members.fetch(interaction.user.id);
@@ -17,11 +16,9 @@ module.exports = {
     async execute(interaction, client) {
         const customId = interaction.customId;
 
-        // ACCEPT MODAL SUBMIT
         if (customId.startsWith('accept_modal_')) {
             const userId = customId.split('_')[2];
             
-            // 🔒 CONTROLLO PERMESSI
             const hasPermission = await hasStaffPermission(interaction);
             if (!hasPermission) {
                 return interaction.reply({ 
@@ -74,7 +71,7 @@ module.exports = {
             if (member) {
                 await member.roles.add(config.roles.moderator).catch(console.error);
                 await member.send({
-                    content: `🎉 **Congratulations!** Your application has been accepted! You are now a moderator!`
+                    content: `**Congratulations!** Your application has been accepted!`
                 }).catch(console.error);
             }
 
@@ -95,11 +92,9 @@ module.exports = {
             return;
         }
 
-        // REFUSE MODAL SUBMIT
         if (customId.startsWith('refuse_modal_')) {
             const userId = customId.split('_')[2];
-            
-            // 🔒 CONTROLLO PERMESSI
+
             const hasPermission = await hasStaffPermission(interaction);
             if (!hasPermission) {
                 return interaction.reply({ 
@@ -152,7 +147,7 @@ module.exports = {
             const member = await interaction.guild.members.fetch(userId).catch(() => null);
             if (member) {
                 await member.send({
-                    content: `❌ Your application has been refused.\n\n**Reason:** ${reason}\n\nThank you for your interest!`
+                    content: `Your application has been refused.\n\n**Reason:** ${reason}\n\nHave a nice day!`
                 }).catch(console.error);
             }
 
