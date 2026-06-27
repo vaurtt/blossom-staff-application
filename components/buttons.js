@@ -18,7 +18,6 @@ const questions = [
     "What changes or ideas would you suggest to improve the server?"
 ];
 
-// 🔒 Funzione per controllare se l'utente è Admin o Owner
 async function hasStaffPermission(interaction) {
     try {
         const member = await interaction.guild.members.fetch(interaction.user.id);
@@ -33,12 +32,10 @@ module.exports = {
     async execute(interaction, client) {
         const customId = interaction.customId;
 
-        // APPLY START - Start the application process
         if (customId === 'apply_start') {
             const userId = interaction.user.id;
             const username = interaction.user.username;
             
-            // Check if user already has an open application
             const existingApp = Object.values(db.applications).find(
                 app => app.userId === userId && app.status === 'open'
             );
@@ -51,7 +48,6 @@ module.exports = {
                 return interaction.reply({ embeds: [embed], ephemeral: true });
             }
 
-            // Check if user has a refused application (cooldown)
             const refusedApp = Object.values(db.applications).find(
                 app => app.userId === userId && app.status === 'refused'
             );
@@ -72,7 +68,6 @@ module.exports = {
                 }
             }
 
-            // Check if user already has an active session
             if (activeSessions.has(userId)) {
                 const embed = new EmbedBuilder()
                     .setTitle('❌ Application')
@@ -81,7 +76,6 @@ module.exports = {
                 return interaction.reply({ embeds: [embed], ephemeral: true });
             }
 
-            // Create the channel
             try {
                 const channelName = `${config.settings.channelNamePrefix}${username}`;
                 const guild = interaction.guild;
@@ -110,7 +104,6 @@ module.exports = {
                     ]
                 });
 
-                // Send welcome message
                 const welcomeEmbed = new EmbedBuilder()
                     .setTitle('📋 Staff Application')
                     .setDescription(`${interaction.user.tag}, answer the questions below. Staff will be able to see your responses.\n\nUse \`/skip\` to skip optional questions.`)
@@ -121,14 +114,12 @@ module.exports = {
                     embeds: [welcomeEmbed]
                 });
 
-                // Save session
                 activeSessions.set(userId, {
                     channelId: channel.id,
                     currentQuestion: 0,
                     answers: {}
                 });
 
-                // Send first question
                 const firstQuestion = new EmbedBuilder()
                     .setTitle(`Question 1/${questions.length}`)
                     .setDescription(questions[0])
@@ -140,7 +131,6 @@ module.exports = {
 
                 await channel.send({ embeds: [firstQuestion] });
 
-                // Confirm to user
                 const confirmEmbed = new EmbedBuilder()
                     .setTitle('✅ Application Started!')
                     .setDescription(`Your application channel has been created!\n<#${channel.id}>\n\nAnswer the questions there.`)
@@ -148,7 +138,6 @@ module.exports = {
 
                 await interaction.reply({ embeds: [confirmEmbed], ephemeral: true });
 
-                // Log
                 const logChannel = guild.channels.cache.get(config.channels.log);
                 if (logChannel) {
                     const logEmbed = new EmbedBuilder()
@@ -174,20 +163,17 @@ module.exports = {
             return;
         }
 
-        // ACCEPT BUTTON
         if (customId.startsWith('accept_')) {
             const userId = customId.split('_')[1];
             
-            // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
             const hasPermission = await hasStaffPermission(interaction);
             if (!hasPermission) {
                 return interaction.reply({ 
-                    content: '❌ You do not have permission to use this button. This action is restricted to **Admin** and **Owner**.', 
+                    content: '❌ You do not have permission to use this button.', 
                     ephemeral: true 
                 });
             }
             
-            // Controlla che chi clicca NON sia l'utente che ha fatto l'application
             if (interaction.user.id === userId) {
                 return interaction.reply({ 
                     content: '❌ You cannot accept your own application!', 
@@ -235,7 +221,7 @@ module.exports = {
             if (member) {
                 await member.roles.add(config.roles.moderator).catch(console.error);
                 await member.send({
-                    content: `🎉 **Congratulations!** Your application has been accepted! You are now a moderator!`
+                    content: `**Congratulations!** Your application has been accepted!`
                 }).catch(console.error);
             }
 
@@ -253,15 +239,13 @@ module.exports = {
             return;
         }
 
-        // REFUSE BUTTON
         if (customId.startsWith('refuse_')) {
             const userId = customId.split('_')[1];
             
-            // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
             const hasPermission = await hasStaffPermission(interaction);
             if (!hasPermission) {
                 return interaction.reply({ 
-                    content: '❌ You do not have permission to use this button. This action is restricted to **Admin** and **Owner**.', 
+                    content: '❌ You do not have permission to use this button.', 
                     ephemeral: true 
                 });
             }
@@ -297,15 +281,13 @@ module.exports = {
             return;
         }
 
-        // NOTE BUTTON
         if (customId.startsWith('note_')) {
             const userId = customId.split('_')[1];
             
-            // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
             const hasPermission = await hasStaffPermission(interaction);
             if (!hasPermission) {
                 return interaction.reply({ 
-                    content: '❌ You do not have permission to use this button. This action is restricted to **Admin** and **Owner**.', 
+                    content: '❌ You do not have permission to use this button.', 
                     ephemeral: true 
                 });
             }
