@@ -7,6 +7,7 @@ module.exports = {
         .setDescription('Send the application panel (Admin only)'),
 
     async execute(interaction, client) {
+        // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
         const member = await interaction.guild.members.fetch(interaction.user.id);
         const hasPermission = member.roles.cache.has(config.roles.admin) || 
                              member.roles.cache.has(config.roles.owner);
@@ -27,7 +28,7 @@ module.exports = {
                 '• Answer all questions honestly\n' +
                 '• Take your time to write quality responses\n' +
                 '• Use `/skip` to skip optional questions\n' +
-                '• Once submitted, staff will review your application'
+                '• Once submitted, staff will review your application\n' +
                 '• Please refrain from using AI during this questionnaire'
             )
             .setColor(config.settings.embedColor)
