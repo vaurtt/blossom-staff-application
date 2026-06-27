@@ -5,7 +5,7 @@ const { db, saveDB } = require('../db.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('accept')
-        .setDescription('Accept a staff application')
+        .setDescription('Accept a staff application (Admin only)')
         .addUserOption(option =>
             option.setName('user')
                 .setDescription('The user to accept')
@@ -18,6 +18,19 @@ module.exports = {
         ),
 
     async execute(interaction, client) {
+        // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
+        const member = await interaction.guild.members.fetch(interaction.user.id);
+        const hasPermission = member.roles.cache.has(config.roles.admin) || 
+                             member.roles.cache.has(config.roles.owner);
+        
+        if (!hasPermission) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Permission Denied')
+                .setDescription('You do not have permission to use this command. This command is restricted to **Admin** and **Owner**.')
+                .setColor(config.settings.embedColor);
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
         const user = interaction.options.getUser('user');
         const reason = interaction.options.getString('reason') || 'No reason provided.';
 
@@ -75,10 +88,10 @@ module.exports = {
             await channel.setParent(config.categories.archive);
         }
 
-        const member = await interaction.guild.members.fetch(user.id).catch(() => null);
-        if (member) {
-            await member.roles.add(config.roles.moderator).catch(console.error);
-            await member.send({
+        const memberUser = await interaction.guild.members.fetch(user.id).catch(() => null);
+        if (memberUser) {
+            await memberUser.roles.add(config.roles.moderator).catch(console.error);
+            await memberUser.send({
                 content: `🎉 **Congratulations!** Your application has been accepted! You are now a moderator!`
             }).catch(console.error);
         }
