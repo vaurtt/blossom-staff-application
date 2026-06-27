@@ -5,7 +5,7 @@ const { db, saveDB } = require('../db.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('note')
-        .setDescription('Add a note to an application')
+        .setDescription('Add a note to an application (Admin only)')
         .addUserOption(option =>
             option.setName('user')
                 .setDescription('The user whose application to note')
@@ -18,6 +18,19 @@ module.exports = {
         ),
 
     async execute(interaction, client) {
+        // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
+        const member = await interaction.guild.members.fetch(interaction.user.id);
+        const hasPermission = member.roles.cache.has(config.roles.admin) || 
+                             member.roles.cache.has(config.roles.owner);
+        
+        if (!hasPermission) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Permission Denied')
+                .setDescription('You do not have permission to use this command. This command is restricted to **Admin** and **Owner**.')
+                .setColor(config.settings.embedColor);
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
         const user = interaction.options.getUser('user');
         const note = interaction.options.getString('note');
 
