@@ -8,7 +8,8 @@ module.exports = {
         client.user.setPresence({
             activities: [{
                 name: 'blossom | staff applications',
-                type: ActivityType.Watching,
+                type: ActivityType.Streaming,
+                url: 'https://www.twitch.tv/lyonwgflive'
             }],
             status: 'online',
         });
