@@ -5,7 +5,7 @@ const { db, saveDB } = require('../db.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('refuse')
-        .setDescription('Refuse a staff application')
+        .setDescription('Refuse a staff application (Admin only)')
         .addUserOption(option =>
             option.setName('user')
                 .setDescription('The user to refuse')
@@ -18,6 +18,19 @@ module.exports = {
         ),
 
     async execute(interaction, client) {
+        // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
+        const member = await interaction.guild.members.fetch(interaction.user.id);
+        const hasPermission = member.roles.cache.has(config.roles.admin) || 
+                             member.roles.cache.has(config.roles.owner);
+        
+        if (!hasPermission) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Permission Denied')
+                .setDescription('You do not have permission to use this command. This command is restricted to **Admin** and **Owner**.')
+                .setColor(config.settings.embedColor);
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
         const user = interaction.options.getUser('user');
         const reason = interaction.options.getString('reason');
 
@@ -76,9 +89,9 @@ module.exports = {
             await channel.setParent(config.categories.archive);
         }
 
-        const member = await interaction.guild.members.fetch(user.id).catch(() => null);
-        if (member) {
-            await member.send({
+        const memberUser = await interaction.guild.members.fetch(user.id).catch(() => null);
+        if (memberUser) {
+            await memberUser.send({
                 content: `❌ Your application has been refused.\n\n**Reason:** ${reason}\n\nThank you for your interest!`
             }).catch(console.error);
         }
