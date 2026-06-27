@@ -7,7 +7,7 @@ module.exports = {
         console.log(`[BOT] Logged in as ${client.user.tag}!`);
         client.user.setPresence({
             activities: [{
-                name: 'Staff Applications | /apply',
+                name: 'blossom | staff applications',
                 type: ActivityType.Watching,
             }],
             status: 'online',
