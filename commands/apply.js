@@ -1,57 +1,34 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const config = require('../config.json');
-const { db } = require('../db.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('apply')
-        .setDescription('Start a staff application'),
+        .setDescription('Send the application panel (Admin only)'),
 
     async execute(interaction, client) {
-        const userId = interaction.user.id;
-
-        const existingApp = Object.values(db.applications).find(
-            app => app.userId === userId && app.status === 'open'
-        );
-
-        if (existingApp) {
+        const member = await interaction.guild.members.fetch(interaction.user.id);
+        const hasPermission = member.roles.cache.has(config.roles.admin) || 
+                             member.roles.cache.has(config.roles.owner);
+        
+        if (!hasPermission) {
             const embed = new EmbedBuilder()
-                .setTitle('❌ Application')
-                .setDescription(`You already have an open application!\nChannel: <#${existingApp.channelId}>`)
+                .setTitle('❌ Permission Denied')
+                .setDescription('You do not have permission to use this command. This command is restricted to **Admin** and **Owner**.')
                 .setColor(config.settings.embedColor);
             return interaction.reply({ embeds: [embed], ephemeral: true });
-        }
-
-        // Check if user has a refused application (cooldown)
-        const refusedApp = Object.values(db.applications).find(
-            app => app.userId === userId && app.status === 'refused'
-        );
-
-        if (refusedApp) {
-            const cooldownDays = config.settings.cooldownDays || 7;
-            const refusedDate = new Date(refusedApp.refusedAt);
-            const now = new Date();
-            const diffDays = Math.floor((now - refusedDate) / (1000 * 60 * 60 * 24));
-            
-            if (diffDays < cooldownDays) {
-                const remainingDays = cooldownDays - diffDays;
-                const embed = new EmbedBuilder()
-                    .setTitle('❌ Cooldown')
-                    .setDescription(`Your previous application was refused. You can apply again in **${remainingDays} day(s)**.`)
-                    .setColor(config.settings.embedColor);
-                return interaction.reply({ embeds: [embed], ephemeral: true });
-            }
         }
 
         const embed = new EmbedBuilder()
             .setTitle('Application')
             .setDescription(
                 'Click the button below to start your staff application.\n\n' +
-                '📝 **Instructions:**\n' +
+                '**Instructions:**\n' +
                 '• Answer all questions honestly\n' +
                 '• Take your time to write quality responses\n' +
                 '• Use `/skip` to skip optional questions\n' +
                 '• Once submitted, staff will review your application'
+                '• Please refrain from using AI during this questionnaire'
             )
             .setColor(config.settings.embedColor)
             .setFooter({ text: 'Good luck!' });
