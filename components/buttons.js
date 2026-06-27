@@ -15,8 +15,19 @@ const questions = [
     "You see another mod breaking rules or acting unfairly. What do you do?",
     "What do you think makes a good moderator?",
     "Anything else you'd like us to know? (Optional)",
-     "What changes or ideas would you suggest to improve the server?"
+    "What changes or ideas would you suggest to improve the server?"
 ];
+
+// 🔒 Funzione per controllare se l'utente è Admin o Owner
+async function hasStaffPermission(interaction) {
+    try {
+        const member = await interaction.guild.members.fetch(interaction.user.id);
+        return member.roles.cache.has(config.roles.admin) || 
+               member.roles.cache.has(config.roles.owner);
+    } catch {
+        return false;
+    }
+}
 
 module.exports = {
     async execute(interaction, client) {
@@ -123,7 +134,6 @@ module.exports = {
                     .setDescription(questions[0])
                     .setColor(config.settings.embedColor);
 
-                // Check if first question is optional
                 if (0 === 0 || 0 === questions.length - 1) {
                     firstQuestion.setFooter({ text: '💡 This question is optional. Use /skip to skip it.' });
                 }
@@ -168,6 +178,15 @@ module.exports = {
         if (customId.startsWith('accept_')) {
             const userId = customId.split('_')[1];
             
+            // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
+            const hasPermission = await hasStaffPermission(interaction);
+            if (!hasPermission) {
+                return interaction.reply({ 
+                    content: '❌ You do not have permission to use this button. This action is restricted to **Admin** and **Owner**.', 
+                    ephemeral: true 
+                });
+            }
+            
             // Controlla che chi clicca NON sia l'utente che ha fatto l'application
             if (interaction.user.id === userId) {
                 return interaction.reply({ 
@@ -203,7 +222,6 @@ module.exports = {
                     await appMessage.edit({ components: [] });
                 }
 
-                // RIMUOVI I PERMESSI ALL'UTENTE
                 await channel.permissionOverwrites.edit(userId, {
                     ViewChannel: false,
                     SendMessages: false,
@@ -239,6 +257,15 @@ module.exports = {
         if (customId.startsWith('refuse_')) {
             const userId = customId.split('_')[1];
             
+            // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
+            const hasPermission = await hasStaffPermission(interaction);
+            if (!hasPermission) {
+                return interaction.reply({ 
+                    content: '❌ You do not have permission to use this button. This action is restricted to **Admin** and **Owner**.', 
+                    ephemeral: true 
+                });
+            }
+            
             if (interaction.user.id === userId) {
                 return interaction.reply({ 
                     content: '❌ You cannot refuse your own application!', 
@@ -273,6 +300,15 @@ module.exports = {
         // NOTE BUTTON
         if (customId.startsWith('note_')) {
             const userId = customId.split('_')[1];
+            
+            // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
+            const hasPermission = await hasStaffPermission(interaction);
+            if (!hasPermission) {
+                return interaction.reply({ 
+                    content: '❌ You do not have permission to use this button. This action is restricted to **Admin** and **Owner**.', 
+                    ephemeral: true 
+                });
+            }
             
             if (interaction.user.id === userId) {
                 return interaction.reply({ 
