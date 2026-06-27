@@ -1,0 +1,19 @@
+{
+  "roles": {
+    "owner": "1520193629736534036",
+    "admin": "1520193666847735888",
+    "moderator": "1520193681603301496"
+  },
+  "categories": {
+    "active": "1520192522201071646",
+    "archive": "1520192378357420042"
+  },
+  "channels": {
+    "log": "1520192411744079932"
+  },
+  "settings": {
+    "cooldownDays": 7,
+    "embedColor": "#2F3136",
+    "channelNamePrefix": "candidature-"
+  }
+}
