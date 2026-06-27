@@ -5,9 +5,22 @@ const { db } = require('../db.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('stats')
-        .setDescription('Show application statistics'),
+        .setDescription('Show application statistics (Admin only)'),
 
     async execute(interaction, client) {
+        // 🔒 CONTROLLO PERMESSI - Solo Admin e Owner
+        const member = await interaction.guild.members.fetch(interaction.user.id);
+        const hasPermission = member.roles.cache.has(config.roles.admin) || 
+                             member.roles.cache.has(config.roles.owner);
+        
+        if (!hasPermission) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Permission Denied')
+                .setDescription('You do not have permission to use this command. This command is restricted to **Admin** and **Owner**.')
+                .setColor(config.settings.embedColor);
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
         const apps = Object.values(db.applications);
         
         const open = apps.filter(app => app.status === 'open').length;
